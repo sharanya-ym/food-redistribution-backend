@@ -1,3 +1,4 @@
+// server/index.js
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -7,32 +8,36 @@ const requestRoutes = require("./routes/requestRoutes");
 require("dotenv").config();
 
 const app = express();
-const PORT = process.env.PORT || 10000; // ✅ Required by Render
-const HOST = "0.0.0.0"; // ✅ Required by Render
+
+const PORT = process.env.PORT || 5000;
+const HOST = "0.0.0.0"; // REQUIRED for Render
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// ✅ Routes
 app.use("/api/users", userRoutes);
 app.use("/api/food", foodRoutes);
 app.use("/api/requests", requestRoutes);
 
-// Test route
+// Health check route
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-// Connect to MongoDB and start server
+// MongoDB connection
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
     console.log("✅ MongoDB Atlas connected");
-    app.listen(PORT, HOST, () => {
-      console.log(`🚀 Server running on http://${HOST}:${PORT}`);
-    });
+
+    // ✅ Start server after DB connection
+    app.listen(PORT, HOST, () =>
+      console.log(`🚀 Server running at http://${HOST}:${PORT}`)
+    );
   })
-  .catch((err) => {
-    console.error("❌ MongoDB connection error:", err);
-  });
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
